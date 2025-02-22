@@ -38,6 +38,7 @@ export default function Component() {
                 <NavLink
                   to={firstInvoice ? `/dashboard/income/${firstInvoice.id}` : '/dashboard/income'}
                   styleAsActive={location.pathname.startsWith('/dashboard/income')}
+                  prefetch="intent"
                 >
                   Income
                 </NavLink>
@@ -46,6 +47,7 @@ export default function Component() {
                 <NavLink
                   to={firstExpense ? `/dashboard/expenses/${firstExpense.id}` : '/dashboard/expenses'}
                   styleAsActive={location.pathname.startsWith('/dashboard/expenses')}
+                  prefetch="intent"
                 >
                   Expenses
                 </NavLink>

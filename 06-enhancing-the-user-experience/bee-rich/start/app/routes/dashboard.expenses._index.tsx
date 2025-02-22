@@ -1,5 +1,6 @@
-import type { ActionFunctionArgs } from '@remix-run/node';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
+import { useNavigation } from '@remix-run/react';
 
 import { Button } from '~/components/buttons';
 import { Form, Input, Textarea } from '~/components/forms';
@@ -28,14 +29,27 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(`/dashboard/expenses/${expense.id}`);
 }
 
+export async function loader({ params }: LoaderFunctionArgs) {
+  const { id } = params;
+
+  if (!id) return null;
+
+  const expense = await db.expense.findUnique({ where: { id } });
+  if (!expense) throw new Response('Not found', { status: 404 });
+  return expense;
+}
+
 export default function Component() {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state !== 'idle' && navigation.formAction === `/dashboard/expenses/?index`;
+
   return (
-    <Form method="POST" action="/dashboard/expenses/?index">
-      <Input label="Title:" type="text" name="title" placeholder="Dinner for Two" required />
-      <Textarea label="Description:" name="description" />
+    <Form method="POST" action={`/dashboard/expenses/?index`}>
+      <Input label="Title:" type="text" name="title" placeholder={'Dinner for Two'} required />
+      <Textarea label="Description:" name="description" defaultValue={''} />
       <Input label="Amount (in USD):" type="number" defaultValue={0} name="amount" required />
-      <Button type="submit" isPrimary>
-        Create
+      <Button type="submit" isPrimary disabled={isSubmitting}>
+        {isSubmitting ? 'Creating...' : 'Create'}
       </Button>
     </Form>
   );

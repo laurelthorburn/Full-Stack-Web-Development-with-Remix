@@ -1,5 +1,5 @@
 import { json } from '@remix-run/node';
-import { Outlet, useLoaderData, useNavigation } from '@remix-run/react';
+import { Outlet, useLoaderData, useNavigation, useParams } from '@remix-run/react';
 import { clsx } from 'clsx';
 
 import { H1 } from '~/components/headings';
@@ -18,6 +18,8 @@ export async function loader() {
 export default function Component() {
   const navigation = useNavigation();
   const invoices = useLoaderData<typeof loader>();
+  const { id } = useParams();
+
   return (
     <div className="w-full">
       <H1>Your income</H1>
@@ -26,7 +28,15 @@ export default function Component() {
           <h2 className="sr-only">All your income</h2>
           <ul className="flex flex-col">
             {invoices.map((invoice) => (
-              <ListLinkItem key={invoice.id} to={`/dashboard/income/${invoice.id}`}>
+              <ListLinkItem
+                key={invoice.id}
+                to={`/dashboard/income/${invoice.id}`}
+                deleteProps={{
+                  ariaLabel: 'Delete invoice',
+                  action: `/dashboard/income/${invoice.id}`,
+                }}
+                isActive={id === invoice.id}
+              >
                 <p>
                   <i>{new Date(invoice.createdAt).toLocaleDateString('en-US')}</i>
                 </p>

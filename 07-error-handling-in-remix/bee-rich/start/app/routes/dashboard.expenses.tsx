@@ -12,7 +12,6 @@ export async function loader() {
       createdAt: 'desc',
     },
   });
-
   return json(expenses);
 }
 
@@ -32,7 +31,7 @@ export default function Component() {
               <ListLinkItem
                 key={expense.id}
                 to={`/dashboard/expenses/${expense.id}`}
-                isActive={id === expense.id}
+                isActive={expense.id === id}
                 deleteProps={{
                   ariaLabel: `Delete expense ${expense.title}`,
                   action: `/dashboard/expenses/${expense.id}`,

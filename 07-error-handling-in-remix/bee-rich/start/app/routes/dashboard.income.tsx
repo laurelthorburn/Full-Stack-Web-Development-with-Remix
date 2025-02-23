@@ -7,45 +7,44 @@ import { ListLinkItem } from '~/components/links';
 import { db } from '~/modules/db.server';
 
 export async function loader() {
-  const expenses = await db.expense.findMany({
+  const invoices = await db.invoice.findMany({
     orderBy: {
       createdAt: 'desc',
     },
   });
-
-  return json(expenses);
+  return json(invoices);
 }
 
 export default function Component() {
   const navigation = useNavigation();
-  const expenses = useLoaderData<typeof loader>();
+  const invoices = useLoaderData<typeof loader>();
   const { id } = useParams();
 
   return (
     <div className="w-full">
-      <H1>Your expenses</H1>
+      <H1>Your income</H1>
       <div className="mt-10 w-full flex flex-col-reverse lg:flex-row">
         <section className="lg:p-8 w-full lg:max-w-2xl">
-          <h2 className="sr-only">All expenses</h2>
+          <h2 className="sr-only">All your income</h2>
           <ul className="flex flex-col">
-            {expenses.map((expense) => (
+            {invoices.map((invoice) => (
               <ListLinkItem
-                key={expense.id}
-                to={`/dashboard/expenses/${expense.id}`}
-                isActive={id === expense.id}
+                key={invoice.id}
+                to={`/dashboard/income/${invoice.id}`}
+                isActive={invoice.id === id}
                 deleteProps={{
-                  ariaLabel: `Delete expense ${expense.title}`,
-                  action: `/dashboard/expenses/${expense.id}`,
+                  ariaLabel: `Delete invoice ${invoice.title}`,
+                  action: `/dashboard/income/${invoice.id}`,
                 }}
               >
                 <p>
-                  <i>{new Date(expense.createdAt).toLocaleDateString('en-US')}</i>
+                  <i>{new Date(invoice.createdAt).toLocaleDateString('en-US')}</i>
                 </p>
-                <p className="text-xl font-semibold">{expense.title}</p>
+                <p className="text-xl font-semibold">{invoice.title}</p>
                 <p>
                   <b>
-                    {Intl.NumberFormat('en-US', { style: 'currency', currency: expense.currencyCode }).format(
-                      expense.amount,
+                    {Intl.NumberFormat('en-US', { style: 'currency', currency: invoice.currencyCode }).format(
+                      invoice.amount,
                     )}
                   </b>
                 </p>

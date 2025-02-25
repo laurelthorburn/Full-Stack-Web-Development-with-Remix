@@ -1,15 +1,29 @@
+import type { LoaderFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Outlet, useLoaderData, useNavigation, useParams } from '@remix-run/react';
+import { Form, Outlet, useLoaderData, useLocation, useNavigation, useParams, useSearchParams } from '@remix-run/react';
 import { clsx } from 'clsx';
 
+import { Input } from '~/components/forms';
 import { H1 } from '~/components/headings';
 import { ListLinkItem } from '~/components/links';
 import { db } from '~/modules/db.server';
+import { requireUserId } from '~/modules/session/session.server';
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const userId = await requireUserId(request);
+
+  const url = new URL(request.url);
+  const searchString = url.searchParams.get('q');
+
   const invoices = await db.invoice.findMany({
     orderBy: {
       createdAt: 'desc',
+    },
+    where: {
+      userId,
+      title: {
+        contains: searchString ? searchString : '',
+      },
     },
   });
   return json(invoices);
@@ -19,12 +33,19 @@ export default function Component() {
   const navigation = useNavigation();
   const invoices = useLoaderData<typeof loader>();
   const { id } = useParams();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
+
   return (
     <div className="w-full">
       <H1>Your income</H1>
       <div className="mt-10 w-full flex flex-col-reverse lg:flex-row">
         <section className="lg:p-8 w-full lg:max-w-2xl">
           <h2 className="sr-only">All your income</h2>
+          <Form method="get" action={location.pathname}>
+            <Input name="q" type="search" label="Search income by title" defaultValue={searchQuery} />
+          </Form>
           <ul className="flex flex-col">
             {invoices.map((invoice) => (
               <ListLinkItem

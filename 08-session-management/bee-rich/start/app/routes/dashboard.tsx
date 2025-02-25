@@ -1,19 +1,28 @@
 import type { Expense, Invoice } from '@prisma/client';
-import type { SerializeFrom } from '@remix-run/node';
+import type { LoaderFunctionArgs, SerializeFrom } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Link as RemixLink, Outlet, useLoaderData, useLocation, useRouteError } from '@remix-run/react';
+import { Form, Link as RemixLink, Outlet, useLoaderData, useLocation, useRouteError } from '@remix-run/react';
 
 import { Container } from '~/components/containers';
 import { H1 } from '~/components/headings';
 import { NavLink } from '~/components/links';
 import { db } from '~/modules/db.server';
+import { requireUserId } from '~/modules/session/session.server';
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const userId = await requireUserId(request);
+
   const expenseQuery = db.expense.findFirst({
     orderBy: { createdAt: 'desc' },
+    where: {
+      userId,
+    },
   });
   const invoiceQuery = db.invoice.findFirst({
     orderBy: { createdAt: 'desc' },
+    where: {
+      userId,
+    },
   });
 
   const [firstExpense, firstInvoice] = await Promise.all([expenseQuery, invoiceQuery]);
@@ -38,7 +47,9 @@ function Layout({ firstExpense, firstInvoice, children }: LayoutProps) {
                 <RemixLink to="/">BeeRich</RemixLink>
               </li>
               <li className="ml-auto">
-                <RemixLink to="/404">Log out</RemixLink>
+                <Form method="post" action="/logout">
+                  <button type="submit">Log out</button>
+                </Form>
               </li>
             </ul>
             <ul className="mt-10 w-full flex flex-row gap-5">
